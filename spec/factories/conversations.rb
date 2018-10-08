@@ -1,5 +1,5 @@
 FactoryBot.define do
   factory :conversation do
-    name { "MyString" }
+    name { Faker::DrWho.character }
   end
 end
