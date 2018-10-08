@@ -1,0 +1,35 @@
+class RoomChannel < ApplicationCable::Channel
+  def subscribed
+    if params[:room_id].present?
+      stream_from("ChatRoom-#{params[:room_id]}")
+    end
+  end
+
+  def speak(data)
+    sender    = get_sender(data)
+    room_id   = data['room_id']
+    message   = data['message']
+
+    raise 'No room_id!' if room_id.blank?
+
+    convo = get_convo(room_id) # A conversation is a room
+    raise 'No conversation found!' if convo.blank?
+    raise 'No message!' if message.blank?
+
+    convo.users << sender unless convo.users.include?(sender)
+
+    Message.create!(
+      conversation: convo,
+      user: sender,
+      content: message
+    )
+  end
+
+  def get_convo(room_code)
+    Conversation.find_by(room_code: room_code)
+  end
+
+  def set_sender
+    User.find_by(guid: id)
+  end
+end
